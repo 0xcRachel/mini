@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC Trading Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="bot-info">
+                <i class="fa-solid fa-robot bot-avatar"></i>
+                <div class="bot-name">
+                    <h3>ABC Trading Bot</h3>
+                    <p class="status">● Trực tuyến</p>
+                </div>
+            </div>
+            <button class="close-btn" onclick="clearChat()" title="Xóa lịch sử"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be injected here -->
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" id="user-input" placeholder="Nhập câu hỏi của bạn..." onkeypress="handleKeyPress(event)" autocomplete="off">
+            <button id="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addMessage(sender, text, isHtml=false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isHtml) {
+                // simple convert newlines to <br> for plain text blocks from bot
+                // also convert markdown-like bold (**) to <strong>
+                let formattedText = text.replace(/\n/g, '<br>');
+                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                contentDiv.innerHTML = formattedText;
+            } else {
+                contentDiv.innerText = text;
+            }
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage('user', message);
+            userInput.value = '';
+            
+            // Add typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message typing-indicator';
+            typingDiv.innerHTML = '<div class="message-content"><i class="fa-solid fa-ellipsis" style="margin-right: 5px;"></i> Bot đang suy nghĩ...</div>';
+            typingDiv.id = 'typing-indicator';
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+                
+                if (response.ok) {
+                    addMessage('bot', data.response, true);
+                } else {
+                    addMessage('bot', 'Xin lỗi, đã xảy ra lỗi: ' + (data.error || 'Lỗi kết nối'));
+                }
+            } catch (error) {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+                addMessage('bot', 'Xin lỗi, không thể kết nối tới máy chủ.');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        async function clearChat() {
+            if(confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện không?')) {
+                const response = await fetch('/reset', {method: 'POST'});
+                if (response.ok) {
+                    chatMessages.innerHTML = '';
+                    loadInitialGreeting();
+                }
+            }
+        }
+
+        async function loadInitialGreeting() {
+            const response = await fetch('/init', {method: 'GET'});
+            const data = await response.json();
+            addMessage('bot', data.response, true);
+        }
+
+        // Load initial greeting when page loads
+        window.onload = loadInitialGreeting;
+    </script>
+</body>
+</html>
