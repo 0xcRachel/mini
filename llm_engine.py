@@ -208,15 +208,29 @@ class LLMEngine:
         """Danh sách sản phẩm hiện có từ DB."""
         return self._lay_danh_sach_san_pham(limit=100)
     
-    def xay_dung_system_prompt(self, context: dict) -> str:
+    def xay_dung_system_prompt(self, context: dict, general_mode: bool = False) -> str:
         """
-        Xây dựng system prompt để bot tư vấn như chuyên viên.
-        ⚠️ BẮT BUỘC: Chỉ dùng sản phẩm từ danh sách được cung cấp, KHÔNG hallucinate!
+        Xây dựng system prompt để bot tư vấn.
+        general_mode=False: Strict mode - chỉ dùng sản phẩm từ danh sách
+        general_mode=True: Flexible mode - có thể trả lời tổng quát (lỏng lòng)
         """
         ten_user = context.get('ten_user', 'bạn')
-        buoc = context.get('buoc', 'tro_chuyen')
         
-        prompt = f"""Bạn là nhân viên tư vấn bán hàng chuyên nghiệp của ABC Trading (Việt Nam).
+        if general_mode:
+            # MODE LỎNG LÒNG - trả lời câu hỏi tổng quát
+            prompt = f"""Bạn là trợ lý ảo thân thiện của ABC Trading (Việt Nam).
+Tên khách hàng: {ten_user}
+
+HƯỚNG DẪN:
+- Trả lời câu hỏi một cách tự nhiên và hữu ích
+- Nếu là câu hỏi liên quan đến sản phẩm/dịch vụ ABC, hãy hướng dẫn tìm hiểu thêm
+- Nếu là câu hỏi tổng quát (ngoài lề), trả lời theo kiến thức chung của bạn
+- Giữ tôn trọng và lịch sự
+- Trả lời NGẮN (2-3 câu), tự nhiên
+"""
+        else:
+            # MODE STRICT - chỉ dùng sản phẩm trong danh sách
+            prompt = f"""Bạn là nhân viên tư vấn bán hàng chuyên nghiệp của ABC Trading (Việt Nam).
 Thông tin khách hàng: {ten_user}
 
 ⚠️ NGUYÊN TẮC QUAN TRỌNG NHẤT:
@@ -240,13 +254,13 @@ QUY TẮC BẢNG GIÁ:
     
     def chat(self, user_message: str, context: dict, product_context: str = "", history: str = "") -> str:
         """
-        Chat với LLM - DATABASE FIRST APPROACH
+        Chat với LLM - DATABASE FIRST APPROACH (STRICT MODE)
         user_message: Câu hỏi của user
         context: Context từ Memory
-        product_context: DANH SÁCH SẢN PHẨM THỰC TỪ DB (bắt buộc)
+        product_context: DANH SÁCH SẢN PHẨM THỰC TỪ DB
         history: Lịch sử hội thoại
         """
-        system_prompt = self.xay_dung_system_prompt(context)
+        system_prompt = self.xay_dung_system_prompt(context, general_mode=False)
         
         # Xây dựng messages
         messages = [
@@ -299,6 +313,48 @@ QUY TẮC BẢNG GIÁ:
         
         except Exception as e:
             print(f"[LLM] Error: {e}")
+            return f"Xin lỗi, tôi gặp lỗi kỹ thuật: {str(e)[:50]}"
+    
+    def chat_general(self, user_message: str, context: dict, history: str = "") -> str:
+        """
+        Chat LỎNG LÒNG - Trả lời câu hỏi tổng quát (không bị kẹp vào sản phẩm ABC)
+        Được dùng cho các câu hỏi ngoài lề
+        """
+        system_prompt = self.xay_dung_system_prompt(context, general_mode=True)
+        
+        messages = [
+            {
+                "role": "system",
+                "content": system_prompt
+            }
+        ]
+        
+        # Thêm lịch sử hội thoại nếu có
+        if history:
+            messages.append({
+                "role": "user",
+                "content": f"Lịch sử hội thoại trước:\n{history}\n---\nTiếp tục cuộc hội thoại."
+            })
+        
+        # Thêm câu hỏi hiện tại
+        messages.append({
+            "role": "user",
+            "content": user_message
+        })
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=300,
+                temperature=0.7,
+            )
+            
+            reply = response.choices[0].message.content.strip()
+            return reply
+        
+        except Exception as e:
+            print(f"[LLM] Error in chat_general: {e}")
             return f"Xin lỗi, tôi gặp lỗi kỹ thuật: {str(e)[:50]}"
     
     def close(self):

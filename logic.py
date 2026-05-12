@@ -76,6 +76,46 @@ def _is_product_query(text: str) -> bool:
     return any(kw in text for kw in keywords)
 
 
+def _is_out_of_scope_question(text: str) -> bool:
+    """
+    Nhận biết câu hỏi NGOÀI LỀ (không liên quan đến sản phẩm/FAQ của ABC)
+    Ví dụ: "Giá cả ở Hà Nội?", "Thời tiết hôm nay?", "Năm nay mấy tuổi?", v.v
+    """
+    text_lower = text.lower()
+    
+    # Từ khóa liên quan đến ABC Trading - nếu có thì KHÔNG phải out-of-scope
+    abc_keywords = [
+        "sản phẩm", "hàng", "điện thoại", "iphone", "samsung", "xiaomi", "oppo", "vivo", "apple",
+        "laptop", "máy tính", "tablet", "máy giặt", "tủ lạnh", "tivi", "tai nghe",
+        "shop", "cửa hàng", "abc", "trading", "mua", "bán", "đặt hàng", "dat hang",
+        "ship", "giao hang", "giao hàng", "mien phi", "miễn phí", "phí giao hàng", "phí ship",
+        "hỗ trợ", "ho tro", "hotline", "liên hệ", "lien he", "đổi trả", "doi tra", "bảo hành", "bao hanh",
+        "chăm sóc khách hàng", "cham soc khach hang", "ho tro khach hang", "giá", "gia", "giá cả", "gia ca",
+    ]
+    
+    # Nếu có từ khóa ABC -> Không phải out-of-scope
+    if any(kw in text_lower for kw in abc_keywords):
+        return False
+    
+    # Câu hỏi out-of-scope: thời tiết, chính trị, lịch sử, địa lý, toán học, v.v
+    out_of_scope_keywords = [
+        "thời tiết", "thoi tiet", "trời hôm nay", "troi hom nay", 
+        "giá cả hà nội", "gia ca ha noi", "giá hà nội", "gia ha noi",
+        "giá ở", "gia o", "giá tại", "gia tai",  # Câu hỏi về giá không liên quan ABC
+        "năm nay", "tuổi", "sinh nhật", "birthday",
+        "chính trị", "chinh tri", "quốc tế", "quoc te", "tổng thống", "tong thong",
+        "tính toán", "tinh toan", "math", "phép tính",
+        "lịch sử", "lich su", "địa lý", "dia ly", 
+        "khoa học", "khoa hoc", "vật lý", "vat ly",
+        "ơm pa", "olympic", "thể thao", "the thao",
+        "cơ thể", "co the", "sức khỏe", "suc khoe",
+        "bệnh", "benh", "dịch bệnh", "dich benh", "covid",
+    ]
+    
+    # Nếu có từ khóa out-of-scope -> Phải out-of-scope
+    return any(kw in text_lower for kw in out_of_scope_keywords)
+
+
 def xu_ly(user_message: str, mem: Memory) -> str:
     """
     XỬ LÝ TIN NHẮN - DATABASE FIRST APPROACH
@@ -168,17 +208,31 @@ Hãy trả lời: "Xin lỗi, cửa hàng hiện không có sản phẩm mà b�
             lich_su_text += f"{msg['role'].upper()}: {msg['content']}\n"
     
     # ============================================================
-    # STEP 3: GỌI LLM với DATABASE CONTEXT
+    # STEP 3: KIỂM TRA CÓ PHẢI CÂU HỎI NGOÀI LỀ KHÔNG
     # ============================================================
-    try:
-        tra_loi = engine.chat(
-            user_message,
-            context,
-            product_context=product_context,
-            history=lich_su_text
-        )
-    except Exception as e:
-        tra_loi = f"Xin lỗi, tôi gặp lỗi kỹ thuật: {str(e)[:100]}"
+    if _is_out_of_scope_question(user_message):
+        # ✅ CÂU HỎI NGOÀI LỀ - Dùng CHAT GENERAL (LỎNG LÒNG)
+        # Ví dụ: "Giá ở Hà Nội?", "Thời tiết hôm nay?", v.v
+        try:
+            tra_loi = engine.chat_general(
+                user_message,
+                context,
+                history=lich_su_text
+            )
+        except Exception as e:
+            tra_loi = f"Xin lỗi, tôi gặp lỗi kỹ thuật: {str(e)[:100]}"
+    else:
+        # ⚠️ CÂU HỎI LÀM VIỆC VỚI ABC - Dùng CHAT STRICT (KỲ CƯƠNG)
+        # Chỉ trả lời dựa trên sản phẩm trong kho
+        try:
+            tra_loi = engine.chat(
+                user_message,
+                context,
+                product_context=product_context,
+                history=lich_su_text
+            )
+        except Exception as e:
+            tra_loi = f"Xin lỗi, tôi gặp lỗi kỹ thuật: {str(e)[:100]}"
 
     if any(kw in user_message.lower() for kw in ['thoát', 'bye', 'goodbye', 'quit', 'tạm biệt']):
         tra_loi = "Cảm ơn bạn đã sử dụng dịch vụ ABC Trading! Hẹn gặp lại. 👋"
