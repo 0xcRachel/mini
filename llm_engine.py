@@ -314,6 +314,44 @@ QUY TẮC BẢNG GIÁ:
         except Exception as e:
             print(f"[LLM] Error: {e}")
             return f"Xin lỗi, tôi gặp lỗi kỹ thuật: {str(e)[:50]}"
+
+    def classify_intent(self, user_message: str, history: str = "") -> dict:
+        """
+        Sử dụng LLM để phân tích ý định của người dùng.
+        Kết quả trả về: { "intent": "SEARCH", "entities": ["iphone", "15"], "sentiment": "neutral" }
+        """
+        prompt = f"""Phân tích câu nói sau của khách hàng và trả về kết quả dưới dạng JSON (CHỈ TRẢ VỀ JSON):
+Câu nói: "{user_message}"
+Lịch sử gần đây: {history}
+
+Các loại Intent (ý định):
+- SEARCH: Tìm kiếm sản phẩm, hỏi giá, hỏi thông số.
+- FAQ: Hỏi về chính sách giao hàng, bảo hành, đổi trả, địa chỉ shop.
+- ORDER_CHECK: Kiểm tra đơn hàng, hỏi về đơn đã đặt.
+- GREETING: Chào hỏi.
+- OUT_OF_SCOPE: Câu hỏi ngoài lề (thời tiết, toán học, kiến thức chung).
+- CHITCHAT: Tán gẫu, khen ngợi, hoặc thoát/tạm biệt.
+
+Định dạng JSON yêu cầu:
+{{
+  "intent": "Tên_Intent",
+  "keywords": ["từ", "khóa", "tìm", "kiếm"],
+  "sentiment": "tâm_trạng_khách"
+}}
+"""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "system", "content": "Bạn là chuyên gia phân tích ngôn ngữ. Chỉ trả về JSON."},
+                          {"role": "user", "content": prompt}],
+                response_format={ "type": "json_object" },
+                max_tokens=150,
+                temperature=0,
+            )
+            return json.loads(response.choices[0].message.content.strip())
+        except Exception as e:
+            print(f"[LLM] Error classifying intent: {e}")
+            return {"intent": "SEARCH", "keywords": [user_message], "sentiment": "neutral"}
     
     def chat_general(self, user_message: str, context: dict, history: str = "") -> str:
         """

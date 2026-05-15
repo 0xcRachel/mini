@@ -3,59 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABC Trading Chatbot</title>
+    <title>ABC Trading | Công nghệ cho cuộc sống hiện đại</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="bot-info">
-                <i class="fa-solid fa-robot bot-avatar"></i>
-                <div class="bot-name">
-                    <h3>ABC Trading Bot</h3>
-                    <p class="status">● Trực tuyến</p>
+
+    <header>
+        <a href="/" class="logo">ABC Trading</a>
+        <nav>
+            <a href="#products">Sản phẩm</a>
+            <a href="#features">Tiện ích</a>
+            <a href="#footer">Liên hệ</a>
+            <a href="#" class="btn-primary" style="padding: 10px 20px; margin-left: 20px; font-size: 15px;">Tài khoản</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1 class="reveal">Tương lai của công nghệ.<br>Hiện diện ngay hôm nay.</h1>
+                <p class="reveal">Khám phá hệ sinh thái thiết bị thông minh đỉnh cao, được thiết kế để nâng tầm trải nghiệm sống của bạn.</p>
+                <div class="reveal" style="display: flex; gap: 16px; justify-content: center;">
+                    <a href="#products" class="btn-primary">Mua ngay ngay</a>
+                    <a href="#features" class="btn-primary" style="background: var(--warm-sand); color: var(--charcoal-warm); box-shadow: none;">Tìm hiểu thêm</a>
                 </div>
             </div>
-            <button class="close-btn" onclick="clearChat()" title="Xóa lịch sử"><i class="fa-solid fa-trash"></i></button>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features">
+            <div class="container">
+                <div class="feature-grid">
+                    <div class="feature-item reveal">
+                        <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                        <h3>Giao hàng thần tốc</h3>
+                        <p>Nhận sản phẩm ngay trong ngày với dịch vụ giao hàng ưu tiên của ABC Trading.</p>
+                    </div>
+                    <div class="feature-item reveal">
+                        <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h3>Bảo hành 24 tháng</h3>
+                        <p>Yên tâm sử dụng với chính sách bảo hành dài hạn và hỗ trợ kỹ thuật tận tâm.</p>
+                    </div>
+                    <div class="feature-item reveal">
+                        <div class="feature-icon"><i class="fa-solid fa-arrows-rotate"></i></div>
+                        <h3>Đổi trả linh hoạt</h3>
+                        <p>Cam kết 1 đổi 1 trong vòng 30 ngày nếu phát hiện bất kỳ lỗi nào từ nhà sản xuất.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Products Section -->
+        <section id="products" class="products">
+            <div class="container">
+                <h2 class="section-title reveal">Bộ sưu tập mới nhất</h2>
+                <p class="section-subtitle reveal">Những công nghệ đột phá vừa cập bến cửa hàng của chúng tôi.</p>
+                
+                <div class="product-grid" id="product-list">
+                    <!-- Products will be injected here via JavaScript -->
+                    <div class="reveal" style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p>Đang tải danh sách sản phẩm...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Section -->
+        <section class="hero" style="background-color: var(--ivory); padding: 80px 0; border-top: 1px solid var(--border-cream);">
+            <div class="container reveal">
+                <h2 class="serif" style="font-size: 36px; margin-bottom: 16px;">Đừng bỏ lỡ các ưu đãi độc quyền</h2>
+                <p style="font-size: 18px; margin-bottom: 32px;">Đăng ký nhận bản tin để nhận voucher 10% cho đơn hàng đầu tiên.</p>
+                <div style="display: flex; gap: 12px; max-width: 500px; margin: 0 auto;">
+                    <input type="email" placeholder="Email của bạn" style="flex: 1; padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border-cream); outline: none;">
+                    <button class="btn-primary">Đăng ký</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="footer">
+        <div class="container">
+            <p>&copy; 2026 ABC Trading Global. Designed by Claude-inspired Design System.</p>
+            <div style="margin-top: 24px;">
+                <a href="#">Sản phẩm</a>
+                <a href="#">Chính sách</a>
+                <a href="#">Hỗ trợ</a>
+                <a href="#">Cửa hàng</a>
+            </div>
+            <div style="margin-top: 24px; font-size: 20px; display: flex; gap: 20px; justify-content: center; color: var(--stone-gray);">
+                <i class="fa-brands fa-facebook"></i>
+                <i class="fa-brands fa-instagram"></i>
+                <i class="fa-brands fa-youtube"></i>
+                <i class="fa-brands fa-tiktok"></i>
+            </div>
         </div>
-        
-        <div class="chat-messages" id="chat-messages">
-            <!-- Messages will be injected here -->
+    </footer>
+
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget-container">
+        <div class="chat-trigger" id="chat-trigger" onclick="toggleChat()">
+            <i class="fa-solid fa-headset"></i>
         </div>
-        
-        <div class="chat-input-container">
-            <input type="text" id="user-input" placeholder="Nhập câu hỏi của bạn..." onkeypress="handleKeyPress(event)" autocomplete="off">
-            <button id="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+
+        <div class="chat-popup" id="chat-popup">
+            <div class="chat-header">
+                <h3>ABC Assistant</h3>
+                <button class="close-chat" onclick="toggleChat()"><i class="fa-solid fa-chevron-down"></i></button>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be injected here -->
+            </div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="user-input" placeholder="Hỏi tôi về sản phẩm..." onkeypress="handleKeyPress(event)" autocomplete="off">
+                <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // --- Scroll Reveal Logic ---
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        function initReveal() {
+            document.querySelectorAll('.reveal').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // --- Product Fetching Logic ---
+        async function loadProducts() {
+            try {
+                const response = await fetch('/products');
+                const products = await response.json();
+                const container = document.getElementById('product-list');
+                
+                if (products.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Hiện không có sản phẩm nào trong kho.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                products.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card reveal';
+                    card.innerHTML = `
+                        <div class="product-image">
+                            <i class="fa-solid ${getIcon(p.category)}"></i>
+                        </div>
+                        <h3 class="product-name">${p.name}</h3>
+                        <p class="product-price">${Number(p.price).toLocaleString('vi-VN')}đ</p>
+                        <p class="product-desc">${p.description ? p.description.substring(0, 100) + '...' : 'Không có mô tả.'}</p>
+                        <button class="btn-primary" style="width: 100%; font-size: 15px;">Thêm vào giỏ</button>
+                    `;
+                    container.appendChild(card);
+                });
+                
+                // Re-observe new elements
+                initReveal();
+            } catch (error) {
+                console.error("Lỗi khi tải sản phẩm:", error);
+            }
+        }
+
+        function getIcon(category) {
+            category = category.toLowerCase();
+            if (category.includes('phone') || category.includes('điện thoại')) return 'fa-mobile-screen-button';
+            if (category.includes('laptop') || category.includes('máy tính')) return 'fa-laptop';
+            if (category.includes('watch') || category.includes('đồng hồ')) return 'fa-clock';
+            if (category.includes('audio') || category.includes('tai nghe')) return 'fa-headphones';
+            return 'fa-box-open';
+        }
+
+        // --- Chat Logic ---
+        const chatPopup = document.getElementById('chat-popup');
         const chatMessages = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
         
+        marked.setOptions({ breaks: true });
+
+        function toggleChat() {
+            chatPopup.classList.toggle('active');
+            if (chatPopup.classList.contains('active')) {
+                userInput.focus();
+                if (chatMessages.children.length === 0) {
+                    loadInitialGreeting();
+                }
+            }
+        }
+
         function scrollToBottom() {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function addMessage(sender, text, isHtml=false) {
+        function addMessage(sender, text) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
             
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            
-            if (isHtml) {
-                // simple convert newlines to <br> for plain text blocks from bot
-                // also convert markdown-like bold (**) to <strong>
-                let formattedText = text.replace(/\n/g, '<br>');
-                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                contentDiv.innerHTML = formattedText;
+            if (sender === 'bot') {
+                messageDiv.innerHTML = marked.parse(text);
             } else {
-                contentDiv.innerText = text;
+                messageDiv.innerText = text;
             }
             
-            messageDiv.appendChild(contentDiv);
             chatMessages.appendChild(messageDiv);
             scrollToBottom();
         }
@@ -64,42 +230,34 @@
             const message = userInput.value.trim();
             if (!message) return;
 
-            // Add user message
             addMessage('user', message);
             userInput.value = '';
             
-            // Add typing indicator
             const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot-message typing-indicator';
-            typingDiv.innerHTML = '<div class="message-content"><i class="fa-solid fa-ellipsis" style="margin-right: 5px;"></i> Bot đang suy nghĩ...</div>';
+            typingDiv.className = 'message bot-message';
             typingDiv.id = 'typing-indicator';
+            typingDiv.innerText = '...';
             chatMessages.appendChild(typingDiv);
             scrollToBottom();
 
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: message })
                 });
                 
                 const data = await response.json();
-                
-                // Remove typing indicator
-                const indicator = document.getElementById('typing-indicator');
-                if (indicator) indicator.remove();
+                document.getElementById('typing-indicator').remove();
                 
                 if (response.ok) {
-                    addMessage('bot', data.response, true);
+                    addMessage('bot', data.response);
                 } else {
-                    addMessage('bot', 'Xin lỗi, đã xảy ra lỗi: ' + (data.error || 'Lỗi kết nối'));
+                    addMessage('bot', 'Lỗi: ' + (data.error || 'Vui lòng thử lại.'));
                 }
             } catch (error) {
-                const indicator = document.getElementById('typing-indicator');
-                if (indicator) indicator.remove();
-                addMessage('bot', 'Xin lỗi, không thể kết nối tới máy chủ.');
+                if(document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+                addMessage('bot', 'Lỗi kết nối máy chủ.');
             }
         }
 
@@ -108,25 +266,18 @@
                 sendMessage();
             }
         }
-        
-        async function clearChat() {
-            if(confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện không?')) {
-                const response = await fetch('/reset', {method: 'POST'});
-                if (response.ok) {
-                    chatMessages.innerHTML = '';
-                    loadInitialGreeting();
-                }
-            }
-        }
 
         async function loadInitialGreeting() {
             const response = await fetch('/init', {method: 'GET'});
             const data = await response.json();
-            addMessage('bot', data.response, true);
+            addMessage('bot', data.response);
         }
 
-        // Load initial greeting when page loads
-        window.onload = loadInitialGreeting;
+        // Initialize everything
+        window.onload = () => {
+            loadProducts();
+            initReveal();
+        };
     </script>
 </body>
 </html>

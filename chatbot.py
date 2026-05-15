@@ -25,6 +25,13 @@ def home():
         return "⚠️  Lỗi: Chưa thiết lập GROQ_API_KEY. Vui lòng kiểm tra lại file .env hoặc biến môi trường."
     return render_template('index.html')
 
+@app.route('/products', methods=['GET'])
+def get_products():
+    from logic import _get_engine
+    engine = _get_engine()
+    products = engine._lay_danh_sach_san_pham(limit=8)
+    return jsonify(products)
+
 @app.route('/init', methods=['GET'])
 def init_chat():
     session_id = str(uuid.uuid4())[:8]
